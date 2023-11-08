@@ -38,6 +38,4 @@ public class Enemy_1 : Enemy {      // Enemy_1 also extends the Enemy class   //
         base.Move();                                                          // e
         //print( bndCheck.isOnScreen ); // Leave this line commented out     // f
     }
-
-    // void Update() {…}  // Please delete the unused Update() method
 }

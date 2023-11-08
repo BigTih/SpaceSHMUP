@@ -9,7 +9,8 @@ public enum eWeaponType {
     phaser,     // [NI] Shots that move in waves
     missile,    // [NI] Homing missile
     laser,      // [NI] Damage over time
-    shield      // Raise shieldLevel
+    shield,     // Raise shieldLevel
+    swivel
 }
 
 [System.Serializable]                                                         // a
@@ -48,6 +49,17 @@ public class Weapon : MonoBehaviour {
     private GameObject        weaponModel;
     private Transform         shotPointTrans; 
 
+    static private List<ProjectileHero> projectiles = new List<ProjectileHero>();
+    GameObject[] enemies;
+    GameObject closest;
+
+    LineRenderer line;
+    
+
+    //private Vector3 projPos;
+
+    Hero hero;
+
     void Start() {
         // Set up PROJECTILE_ANCHOR if it has not already been done
         if (PROJECTILE_ANCHOR == null) {                                       // b
@@ -61,7 +73,7 @@ public class Weapon : MonoBehaviour {
         SetType( _type );                                                      // d
 
         // Find the fireEvent of a Hero Component in the parent hierarchy
-        Hero hero = GetComponentInParent<Hero>();                              // e
+        hero = GetComponentInParent<Hero>();                              // e
         if ( hero != null ) hero.fireEvent += Fire;
     }
 
@@ -97,6 +109,19 @@ public class Weapon : MonoBehaviour {
         
         ProjectileHero p;
         Vector3 vel = Vector3.up * def.velocity;
+
+        enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        float minDist = 100000000000;
+        closest = null;
+        foreach(GameObject obj in enemies)
+        {
+            float dist = Vector3.Distance(obj.transform.position, hero.transform.position);
+            if(dist<minDist)
+            {
+                minDist = dist;
+                closest = obj;
+            }
+        }
         
         switch (type) {                                                      // k
             case eWeaponType.blaster:
@@ -115,7 +140,112 @@ public class Weapon : MonoBehaviour {
                 p.vel = p.transform.rotation * vel;
                 break;
 
+            case eWeaponType.phaser:
+                p = MakeProjectile();
+                p.vel = vel;
+                break;
+
+            case eWeaponType.missile:
+                
+                p = MakeProjectile();
+
+                
+                break;
+
+            case eWeaponType.swivel:
+                p = MakeProjectile();
+
+                Vector3 enemyLookDirection = closest.transform.forward;
+                Vector3 direction = (hero.transform.position - closest.transform.position).normalized;
+                float angle = Vector3.Angle(enemyLookDirection, direction);
+                p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
+                p.vel = p.transform.rotation * vel;
+                Debug.Log(closest.name);
+                break;
+
+            /*case eWeaponType.laser:
+                line = anchor.GetComponent<LineRenderer>();
+                line.enabled = true;
+
+                Ray ray = new Ray(anchor.transform.position, transform.up);
+                RaycastHit hit;
+                line.SetPosition(0, ray.origin);
+
+                if(Physics.Raycast(ray, out hit, 10))
+                {
+                    line.SetPosition(1, hit.point);
+                }
+                else
+                {
+                    line.SetPosition(1, ray.GetPoint(10));
+                }*/
+
         } 
+    }
+
+    float angle = 0;
+    int sign = 1;
+
+    void Update()
+    {
+        foreach(ProjectileHero p in projectiles)
+        {
+            if(p.type == eWeaponType.missile)
+            {
+                if(closest)
+                {
+                    p.transform.position = Vector3.Lerp(p.transform.position, closest.transform.position, .01f);
+                }
+                else
+                {
+                    RemoveProj(p);
+                    Destroy(p);
+                }
+            }
+            else if(p.type == eWeaponType.phaser)
+            {
+                if(p)
+                {
+                    if(angle>.5f)
+                    {
+                        sign = -1;
+                    }
+                    else if(angle < -.5f)
+                    {
+                        sign = 1;
+                    }
+                    Vector3 tempVel = p.vel;
+                    angle+=Time.deltaTime * 1 *sign;
+                    p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
+                    p.vel = p.transform.rotation * p.vel;
+                }
+            }
+        }
+    }
+
+    void FixedUpdate()
+    {
+        foreach(ProjectileHero p in projectiles)
+        {
+            if(p.type == eWeaponType.phaser)
+            {
+                if(p)
+                {
+                    if(angle>.5f)
+                    {
+                        sign = -1;
+                    }
+                    else if(angle < -.5f)
+                    {
+                        sign = 1;
+                    }
+                    Vector3 tempVel = p.vel;
+                    angle+=Time.deltaTime * 1 *sign;
+                    p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
+                    p.vel = p.transform.rotation * p.vel;
+                }
+            }
+        }
     }
 
     private ProjectileHero MakeProjectile() {                                 // m
@@ -129,6 +259,12 @@ public class Weapon : MonoBehaviour {
         
         p.type = type;                                   
         nextShotTime = Time.time + def.delayBetweenShots;                    // p
+        projectiles.Add(p);
         return( p );
+    }
+
+    static public void RemoveProj(ProjectileHero p)
+    {
+        projectiles.Remove(p);
     }
 }
