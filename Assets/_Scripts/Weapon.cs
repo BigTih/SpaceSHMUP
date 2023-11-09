@@ -155,12 +155,12 @@ public class Weapon : MonoBehaviour {
             case eWeaponType.swivel:
                 p = MakeProjectile();
 
-                Vector3 enemyLookDirection = closest.transform.forward;
-                Vector3 direction = (hero.transform.position - closest.transform.position).normalized;
-                float angle = Vector3.Angle(enemyLookDirection, direction);
+                Vector3 forward = p.transform.up;
+                Vector3 targetDirection = (closest.transform.position - hero.transform.position).normalized;
+                float angle = Vector3.SignedAngle(targetDirection, forward, Vector3.forward);
                 p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
                 p.vel = p.transform.rotation * vel;
-                Debug.Log(closest.name);
+                Debug.Log(angle);
                 break;
 
             /*case eWeaponType.laser:
@@ -206,41 +206,16 @@ public class Weapon : MonoBehaviour {
             {
                 if(p)
                 {
-                    if(angle>.5f)
+                    if(angle> 3f)
                     {
                         sign = -1;
                     }
-                    else if(angle < -.5f)
+                    else if(angle < -3f)
                     {
                         sign = 1;
                     }
                     Vector3 tempVel = p.vel;
-                    angle+=Time.deltaTime * 1 *sign;
-                    p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
-                    p.vel = p.transform.rotation * p.vel;
-                }
-            }
-        }
-    }
-
-    void FixedUpdate()
-    {
-        foreach(ProjectileHero p in projectiles)
-        {
-            if(p.type == eWeaponType.phaser)
-            {
-                if(p)
-                {
-                    if(angle>.5f)
-                    {
-                        sign = -1;
-                    }
-                    else if(angle < -.5f)
-                    {
-                        sign = 1;
-                    }
-                    Vector3 tempVel = p.vel;
-                    angle+=Time.deltaTime * 1 *sign;
+                    angle += .1f * sign;
                     p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
                     p.vel = p.transform.rotation * p.vel;
                 }
