@@ -24,6 +24,8 @@ public class Hero : MonoBehaviour
     public delegate void WeaponFireDelegate();
     public event WeaponFireDelegate fireEvent;
 
+    LineRenderer line;
+
     void Awake() {
         if (S == null) {
             S = this; // Set the Singleton only if it’s null                  // c
@@ -52,6 +54,10 @@ public class Hero : MonoBehaviour
 
         if ( Input.GetAxis( "Jump" ) == 1 && fireEvent != null ) {                           // a
             fireEvent();
+        }
+        else
+        {
+            line.enabled = false;
         }
     }
     
@@ -141,5 +147,10 @@ public class Hero : MonoBehaviour
         foreach (Weapon w in weapons) {
             w.SetType(eWeaponType.none);
         }
+    }
+
+    public void SetLine(LineRenderer l)
+    {
+        line = l;
     }
 }

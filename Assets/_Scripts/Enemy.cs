@@ -62,7 +62,6 @@ public class Enemy : MonoBehaviour
                     Destroy( this.gameObject );
                 }
             }
-            Weapon.RemoveProj( p );
             // Destroy the ProjectileHero regardless
             Destroy( otherGO );
         } else {

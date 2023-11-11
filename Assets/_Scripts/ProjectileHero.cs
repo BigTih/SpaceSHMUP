@@ -9,6 +9,7 @@ public class ProjectileHero : MonoBehaviour {
 
     [Header("Dynamic")]
     public Rigidbody    rigid;
+    GameObject closest; 
     [SerializeField]                                                         // a
     private eWeaponType _type;                                               // b
     
@@ -24,9 +25,21 @@ public class ProjectileHero : MonoBehaviour {
         rigid = GetComponent<Rigidbody>(); 
     }
 
-    void Update () {
+    void Update () 
+    {
         if ( bndCheck.LocIs(BoundsCheck.eScreenLocs.offUp) ) {
             Destroy( gameObject );
+        }
+        if(_type == eWeaponType.missile)
+        {
+            if (closest)
+            {
+                transform.position = Vector3.MoveTowards(transform.position, closest.transform.position, .05f);
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
         }
     }
         
@@ -47,6 +60,11 @@ public class ProjectileHero : MonoBehaviour {
     public Vector3 vel {
         get { return rigid.velocity; }
         set { rigid.velocity = value; }
+    }
+
+    public void SetClosest(GameObject c)
+    {
+        closest = c;
     }
     
 }

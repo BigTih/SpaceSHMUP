@@ -36,94 +36,107 @@ public class WeaponDefinition {                                               //
     public float        velocity = 50;          
 }
 
-public class Weapon : MonoBehaviour {
-    static public Transform   PROJECTILE_ANCHOR;
+public class Weapon : MonoBehaviour
+{
+    static public Transform PROJECTILE_ANCHOR;
+
+    GameObject anchor;
 
     [Header("Dynamic")]                                                        // a
     [SerializeField]                                                           // a
     [Tooltip("Setting this manually while playing does not work properly.")]   // a
-    private eWeaponType       _type = eWeaponType.none;
-    public WeaponDefinition   def;
-    public float              nextShotTime; // Time the Weapon will fire next
+    private eWeaponType _type = eWeaponType.none;
+    public WeaponDefinition def;
+    public float nextShotTime; // Time the Weapon will fire next
+
+    private GameObject weaponModel;
+    private Transform shotPointTrans;
     
-    private GameObject        weaponModel;
-    private Transform         shotPointTrans; 
 
     static private List<ProjectileHero> projectiles = new List<ProjectileHero>();
     GameObject[] enemies;
     GameObject closest;
 
     LineRenderer line;
-    
 
-    //private Vector3 projPos;
 
     Hero hero;
 
-    void Start() {
+    void Start()
+    {
         // Set up PROJECTILE_ANCHOR if it has not already been done
-        if (PROJECTILE_ANCHOR == null) {                                       // b
+        if (PROJECTILE_ANCHOR == null)
+        {                                       // b
             GameObject go = new GameObject("_ProjectileAnchor");
+            go.AddComponent<LineRenderer>();
+            anchor = go;
             PROJECTILE_ANCHOR = go.transform;
         }
 
-        shotPointTrans = transform.GetChild( 0 );                              // c
-        
+        shotPointTrans = transform.GetChild(0);                              // c
+
         // Call SetType() for the default _type set in the Inspector
-        SetType( _type );                                                      // d
+        SetType(_type);                                                      // d
 
         // Find the fireEvent of a Hero Component in the parent hierarchy
         hero = GetComponentInParent<Hero>();                              // e
-        if ( hero != null ) hero.fireEvent += Fire;
+        if (hero != null) hero.fireEvent += Fire;
     }
 
-    public eWeaponType type {
-        get {    return( _type );    }
-        set {    SetType( value );   }
+    public eWeaponType type
+    {
+        get { return (_type); }
+        set { SetType(value); }
     }
 
-    public void SetType( eWeaponType wt ) {
+    public void SetType(eWeaponType wt)
+    {
         _type = wt;
-        if (type == eWeaponType.none) {                                       // f
+        if (type == eWeaponType.none)
+        {                                       // f
             this.gameObject.SetActive(false);
             return;
-        } else {
+        }
+        else
+        {
             this.gameObject.SetActive(true);
         }
         // Get the WeaponDefinition for this type from Main
-        def = Main.GET_WEAPON_DEFINITION(_type);                         
+        def = Main.GET_WEAPON_DEFINITION(_type);
         // Destroy any old model and then attach a model for this weapon     // g
-        if ( weaponModel != null ) Destroy( weaponModel );
+        if (weaponModel != null) Destroy(weaponModel);
         weaponModel = Instantiate<GameObject>(def.weaponModelPrefab, transform);
         weaponModel.transform.localPosition = Vector3.zero;
         weaponModel.transform.localScale = Vector3.one;
-        
+
         nextShotTime = 0; // You can fire immediately after _type is set.    // h
     }
 
-    private void Fire() { 
+    private void Fire()
+    {
         // If this.gameObject is inactive, return
-        if ( !gameObject.activeInHierarchy ) return;                         // i
+        if (!gameObject.activeInHierarchy) return;                         // i
         // If it hasn’t been enough time between shots, return
-        if ( Time.time < nextShotTime ) return;                              // j
-        
+        if (Time.time < nextShotTime) return;                              // j
+
         ProjectileHero p;
         Vector3 vel = Vector3.up * def.velocity;
 
         enemies = GameObject.FindGameObjectsWithTag("Enemy");
         float minDist = 100000000000;
         closest = null;
-        foreach(GameObject obj in enemies)
+        foreach (GameObject obj in enemies)
         {
             float dist = Vector3.Distance(obj.transform.position, hero.transform.position);
-            if(dist<minDist)
+            if (dist < minDist)
             {
                 minDist = dist;
                 closest = obj;
             }
         }
-        
-        switch (type) {                                                      // k
+
+        switch (type)
+        {                                                      // k
             case eWeaponType.blaster:
                 p = MakeProjectile();
                 p.vel = vel;
@@ -133,10 +146,10 @@ public class Weapon : MonoBehaviour {
                 p = MakeProjectile();
                 p.vel = vel;
                 p = MakeProjectile();
-                p.transform.rotation = Quaternion.AngleAxis( 10, Vector3.back );
+                p.transform.rotation = Quaternion.AngleAxis(10, Vector3.back);
                 p.vel = p.transform.rotation * vel;
                 p = MakeProjectile();
-                p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back );
+                p.transform.rotation = Quaternion.AngleAxis(-10, Vector3.back);
                 p.vel = p.transform.rotation * vel;
                 break;
 
@@ -146,10 +159,9 @@ public class Weapon : MonoBehaviour {
                 break;
 
             case eWeaponType.missile:
-                
                 p = MakeProjectile();
+                p.SetClosest(closest);
 
-                
                 break;
 
             case eWeaponType.swivel:
@@ -163,83 +175,45 @@ public class Weapon : MonoBehaviour {
                 Debug.Log(angle);
                 break;
 
-            /*case eWeaponType.laser:
+            case eWeaponType.laser:
+                
+                anchor.transform.position = hero.transform.position;
                 line = anchor.GetComponent<LineRenderer>();
                 line.enabled = true;
 
-                Ray ray = new Ray(anchor.transform.position, transform.up);
+                Ray ray = new Ray(anchor.transform.position, transform.forward);
                 RaycastHit hit;
                 line.SetPosition(0, ray.origin);
 
-                if(Physics.Raycast(ray, out hit, 10))
+                if(Physics.Raycast(ray, out hit, 100))
                 {
                     line.SetPosition(1, hit.point);
+                    Enemy enemy = hit.collider.gameObject;
+                    if(enemy )
+                    Destroy(enemy);
                 }
                 else
                 {
-                    line.SetPosition(1, ray.GetPoint(10));
-                }*/
-
-        } 
-    }
-
-    float angle = 0;
-    int sign = 1;
-
-    void Update()
-    {
-        foreach(ProjectileHero p in projectiles)
-        {
-            if(p.type == eWeaponType.missile)
-            {
-                if(closest)
-                {
-                    p.transform.position = Vector3.Lerp(p.transform.position, closest.transform.position, .01f);
+                    line.SetPosition(1, ray.GetPoint(100));
                 }
-                else
-                {
-                    RemoveProj(p);
-                    Destroy(p);
-                }
-            }
-            else if(p.type == eWeaponType.phaser)
-            {
-                if(p)
-                {
-                    if(angle> 3f)
-                    {
-                        sign = -1;
-                    }
-                    else if(angle < -3f)
-                    {
-                        sign = 1;
-                    }
-                    Vector3 tempVel = p.vel;
-                    angle += .1f * sign;
-                    p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
-                    p.vel = p.transform.rotation * p.vel;
-                }
-            }
+                hero.SetLine(line);
+                break;
+
         }
     }
 
-    private ProjectileHero MakeProjectile() {                                 // m
+    private ProjectileHero MakeProjectile()
+    {                                 // m
         GameObject go;
-        go = Instantiate<GameObject>(def.projectilePrefab,PROJECTILE_ANCHOR); // n
+        go = Instantiate<GameObject>(def.projectilePrefab, PROJECTILE_ANCHOR); // n
         ProjectileHero p = go.GetComponent<ProjectileHero>();
-        
+
         Vector3 pos = shotPointTrans.position;
         pos.z = 0;                                                            // o
         p.transform.position = pos;
-        
-        p.type = type;                                   
-        nextShotTime = Time.time + def.delayBetweenShots;                    // p
-        projectiles.Add(p);
-        return( p );
-    }
 
-    static public void RemoveProj(ProjectileHero p)
-    {
-        projectiles.Remove(p);
+        p.type = type;
+        nextShotTime = Time.time + def.delayBetweenShots;                    // p
+        return (p);
     }
 }
