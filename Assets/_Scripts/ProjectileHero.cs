@@ -11,7 +11,14 @@ public class ProjectileHero : MonoBehaviour {
     public Rigidbody    rigid;
     GameObject closest; 
     [SerializeField]                                                         // a
-    private eWeaponType _type;                                               // b
+    private eWeaponType _type;    
+    
+    private float x0; 
+    public float waveRotY  = 45; 
+    public float    waveWidth = 2;
+    public float    waveFrequency = 1;
+    private float   birthTime;
+
     
     // This public property masks the private field _type
     public eWeaponType   type {                                              // c
@@ -19,10 +26,23 @@ public class ProjectileHero : MonoBehaviour {
         set { SetType( value ); }                  
     }
 
+    void Start() {
+        // Set x0 to the initial x position of Enemy_1
+        x0 = transform.position.x;                                                           // c
+        birthTime = Time.time;
+
+        if(this.vel == Vector3.down * 50)
+        {
+            waveWidth *= -1;
+            this.vel = Vector3.up * 50;
+        }
+    }
+
     void Awake () {
         bndCheck = GetComponent<BoundsCheck>();
         rend = GetComponent<Renderer>();                                     // d
         rigid = GetComponent<Rigidbody>(); 
+        
     }
 
     void Update () 
@@ -40,6 +60,19 @@ public class ProjectileHero : MonoBehaviour {
             {
                 Destroy(gameObject);
             }
+        }
+        else if(_type == eWeaponType.phaser)
+        {
+            Vector3 tempPos = transform.position;
+            // theta adjusts based on time
+            float age = Time.time - birthTime;
+            float theta = Mathf.PI * 2 * age / waveFrequency;
+            float sin = Mathf.Sin(theta);
+            tempPos.x = x0 + waveWidth * sin;
+            transform.position = tempPos;
+            // rotate a bit about y
+            Vector3 rot = new Vector3(0, sin *waveRotY, 0);
+            this.transform.rotation = Quaternion.Euler(rot);
         }
     }
         

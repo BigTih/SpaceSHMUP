@@ -156,6 +156,8 @@ public class Weapon : MonoBehaviour
             case eWeaponType.phaser:
                 p = MakeProjectile();
                 p.vel = vel;
+                p = MakeProjectile();
+                p.vel = Vector3.down * def.velocity;
                 break;
 
             case eWeaponType.missile:
@@ -172,7 +174,6 @@ public class Weapon : MonoBehaviour
                 float angle = Vector3.SignedAngle(targetDirection, forward, Vector3.forward);
                 p.transform.rotation = Quaternion.AngleAxis(angle, Vector3.back);
                 p.vel = p.transform.rotation * vel;
-                Debug.Log(angle);
                 break;
 
             case eWeaponType.laser:
@@ -188,9 +189,14 @@ public class Weapon : MonoBehaviour
                 if(Physics.Raycast(ray, out hit, 100))
                 {
                     line.SetPosition(1, hit.point);
-                    Enemy enemy = hit.collider.gameObject;
-                    if(enemy )
-                    Destroy(enemy);
+                    GameObject enemy = hit.collider.gameObject;
+                    enemy.GetComponent<Enemy>().LaserHit();
+                    if(enemy.name == "Enemy_4(Clone)")
+                    {
+                        enemy.GetComponent<Enemy_4>().OnLaserHit(hit);
+                    }
+                    
+                    
                 }
                 else
                 {

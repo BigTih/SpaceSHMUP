@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: -8004402176936686869}
   - component: {fileID: -5953672017123954653}
   - component: {fileID: 6886611982906862084}
+  - component: {fileID: 1960702626778587990}
   m_Layer: 9
   m_Name: Enemy_1
   m_TagString: Enemy
@@ -105,6 +106,20 @@ MonoBehaviour:
   showingColor: 0
   blinkCompleteTime: 0
   ignoreOnCollisionEnter: 0
+--- !u!136 &1960702626778587990
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3319825933102930435}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  m_Radius: 2
+  m_Height: 3.5
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1001 &5065028546169738789
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -203,6 +218,10 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 17b565173ef973647a7c2db144c0e2b4, type: 3}
       propertyPath: m_Layer
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 17b565173ef973647a7c2db144c0e2b4, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     - target: {fileID: 6354937313197731659, guid: 17b565173ef973647a7c2db144c0e2b4, type: 3}
       propertyPath: m_Layer

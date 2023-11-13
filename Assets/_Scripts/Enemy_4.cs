@@ -106,4 +106,35 @@ public class Enemy_4 : Enemy {            // Enemy_4 also extends the Enemy clas
             Debug.Log( "Enemy_4 hit by non-ProjectileHero: " + otherGO.name );
         }
     }
+
+    public void OnLaserHit(RaycastHit hit)
+    {
+
+        GameObject hitGO = hit.collider.gameObject;
+
+        // Get the damage amount from the Main WEAP_DICT.
+        float dmg = .1f;
+        
+        // Find the EnemyShield that was hit (if there was one)
+        bool shieldFound = false;
+        foreach ( EnemyShield es in allShields ) {                     // f
+            if ( es.gameObject == hitGO ) {
+                es.TakeDamage( dmg );
+                shieldFound = true;
+            }
+        }
+        if ( !shieldFound ) thisShield.TakeDamage( dmg );             // g
+
+        // If thisShield is still active, then it has not been destroyed
+        if ( thisShield.isActive ) return;                            // h
+
+        // This ship was destroyed so tell Main about it      
+        if ( !calledShipDestroyed ) {
+            Main.SHIP_DESTROYED( this );
+            calledShipDestroyed = true;
+        }
+
+        // Destroy this Enemy_4
+        Destroy( gameObject );
+    }
 }
